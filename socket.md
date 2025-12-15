@@ -18,8 +18,8 @@ import time
 ### TCP Server
 ```python
 
-host = sys.argv[0]
-port = sys.argv[1]
+host = sys.argv[1]
+port = sys.argv[2]
 address = (host, port)
 
 def tcp_server():
