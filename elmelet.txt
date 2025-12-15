@@ -1,0 +1,227 @@
+1. AF_INET:
+Család típus — IPv4-es címeket használ (host + port).
+IPv6 esetén AF_INET6.
+
+2. recv():
+A kliens vagy szerver fogad adatot a másik féltől. Akkor használod, amikor adat érkezik a socketen.
+
+3. socket():
+Létrehoz egy új socketet (kommunikációs végpontot).
+Pl.: socket.socket(AF_INET, SOCK_STREAM) → TCP socket.
+
+4. SOCK_STREAM vs SOCK_DGRAM:
+
+SOCK_STREAM: TCP, megbízható, sorrendben, kapcsolat alapú.
+
+SOCK_DGRAM: UDP, gyors, kapcsolat nélküli, csomag alapú.
+
+5. bind():
+A socketet hozzárendeli egy IP-címhez és porthoz (szerver oldalon kötelező).
+
+6. listen():
+Szerver TCP socketet várakozási állapotba állít, hogy elfogadhasson klienseket.
+
+7. accept():
+Elfogad egy új bejövő kapcsolatot, és új socketet ad vissza a klienssel való kommunikációhoz.
+
+8. connect():
+Kliens oldalon a kapcsolat létrehozása a szerverrel.
+
+⚙️ Adatküldés/fogadás
+
+9. sendall() előnye:
+Automatikusan újraküldi, amíg az összes adat el nem megy.
+send() lehet, hogy csak részleges adatot küld.
+
+10. Socket timeout:
+Az időkorlát — ha egy művelet (pl. recv) nem fejeződik be adott időn belül, kivételt dob.
+
+11. settimeout():
+Beállítja a socket timeout értékét másodpercben.
+
+12. recv() 0 byte:
+A másik fél bezárta a kapcsolatot.
+
+13. close():
+Lezárja a socketet és felszabadítja az erőforrásokat.
+
+🌐 Hálózati alapok
+
+14. localhost:
+A helyi gép címe (127.0.0.1).
+
+15. Port szám:
+Egy gépen belül azonosítja, melyik alkalmazáshoz megy a kapcsolat.
+
+16. IP cím:
+A hálózaton azonosítja a gépet.
+
+17. Kliens-szerver architektúra:
+A kliens kér, a szerver válaszol.
+
+🔒 Socket működés
+
+18. "Blocking" művelet:
+A program várakozik, amíg a művelet be nem fejeződik (pl. recv() vár adatot).
+
+19. TCP socket létrehozása:
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
+20. TCP szerver sorrendje:
+socket() → bind() → listen() → accept() → recv()/send() → close()
+
+21. TCP kliens sorrendje:
+socket() → connect() → send()/recv() → close()
+
+⚡ Haladóbb beállítások
+
+22. SO_REUSEADDR:
+Engedi, hogy újrahasználd ugyanazt a portot, ha előzőleg bezártad.
+
+23. Beállítása:
+
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+
+24. listen(1):
+Egyszerre max. 1 várakozó kapcsolatot enged.
+
+📁 Adatok, fájlok
+
+25. Bináris adatküldés TCP-n:
+sendall(binary_data) — ne kódold, bináris módon nyisd meg a fájlt.
+
+26. struct modul szerepe:
+Bináris adatok összecsomagolása (C-szerű formátumba) és kibontása hálózaton.
+
+27. Több kliens kezelése:
+select(), poll(), asyncio, vagy threading.
+
+28. with statement előnye:
+Automatikusan bezárja a socketet, még hiba esetén is.
+
+29. Hatékony fájlküldés TCP-n:
+Olvasd chunkokra (pl. 4096 byte) és sendall()-lal küldd, míg vége.
+
+📦 struct modul
+
+30. struct.pack():
+Python adatokat binárissá alakít küldéshez.
+
+31. struct.unpack():
+Bináris adatot Python változókká bont.
+
+32. 'f f 1s' formátum:
+Két float és egy 1 byte-os string.
+
+33. Részleges adatküldés kezelése:
+sendall()-t használj vagy ciklusban küldd el az összes byte-ot.
+
+🔁 Kapcsolatkezelés
+
+34. accept() után:
+Új socketet kapsz (klienssel való kommunikációra) + kliens címet.
+
+35. Kliens kapcsolat lezárása:
+Kliens socket: client_socket.close(), de a szerver tovább futhat.
+
+36. Server socket vs client socket:
+
+Server socket: vár kapcsolatokat (listen, accept)
+
+Client socket: tényleges adatforgalmat kezel (send, recv)
+
+37. Fájlküldés TCP-vel:
+Olvasás chunkonként → sendall()
+Fogadás chunkonként → fájlba írás.
+
+38. ('localhost', 10000):
+Cím-pár, amit bind() és connect() is használ (IP + port).
+
+🧩 UDP
+
+39. UDP socket létrehozása:
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+
+40. TCP vs UDP:
+TCP = megbízható, kapcsolat alapú.
+UDP = gyors, de nincs visszaigazolás, nincs kapcsolat.
+
+41. sendto():
+UDP-nél adatot küld egy adott címre.
+
+42. recvfrom():
+Adatot fogad és visszaadja az adatot + küldő címét.
+
+43. connect() UDP kliensnél:
+Nem kötelező (de lehet használni).
+
+44. listen() UDP szervernél:
+Nem létezik, UDP kapcsolat nélküli.
+
+45. UDP szerver sorrendje:
+socket() → bind() → recvfrom() → sendto() → close()
+
+46. UDP kliens sorrendje:
+socket() → sendto() → recvfrom() → close()
+
+47. recvfrom() visszatér:
+Tupple: (data, (ip, port))
+
+48. sendto() paraméterei:
+sendto(data, (ip, port))
+
+49. UDP maximális csomagméret:
+Elméletben 65,507 byte (gyakorlatban kevesebb, pl. 1500 MTU).
+
+50. Ha UDP csomag elvész:
+Nem kerül újraküldésre — elveszett.
+
+51. Timeout UDP-nél:
+Véd a végtelen várakozástól, ha nem jön válasz.
+
+52. bind() UDP kliensnél:
+Nem kötelező (rendszer automatikusan ad portot).
+
+53. "I I 1s" formátum:
+Két unsigned int és egy 1 byte-os string.
+
+54. Timeout kivétel kezelése:
+try/except socket.timeout: blokkban.
+
+55. TCP vs UDP fájlküldés:
+TCP: megbízható, sorrendhelyes.
+UDP: gyorsabb, de csomagvesztés lehetséges, ezért extra logika kell.
+
+🌍 Proxy, select
+
+56. Proxy szerver:
+Kliens és cél szerver közötti közvetítő, továbbítja vagy szűri a kéréseket.
+
+57. select():
+Figyel több socketet egyszerre, hogy melyik olvasható/írható.
+
+58. select() visszatér:
+Három lista: (olvasható, írható, hibás socketek).
+
+59. HTTP szűrés proxy-ban:
+A recv()-elt HTTP kéréseket elemzed (pl. GET /path HTTP/1.1), és engedélyezed/tiltod.
+
+60. 404:
+HTTP státuszkód – „Nem található” (a kért erőforrás nem létezik).
+
+61. Ha select() timeout-ol:
+Üres listákkal tér vissza.
+
+62. socket.timeout kivétel:
+Akkor dobódik, ha egy blokkoló művelet túllépi az időkorlátot.
+
+63. Kapcsolat megszakadás detektálása TCP-ben:
+recv() 0 byte-ot ad vissza, vagy kivétel (ConnectionResetError).
+
+64. bind() sikertelenség leggyakoribb oka:
+A port már foglalt vagy nincs jogosultság (pl. <1024 port root nélkül).
