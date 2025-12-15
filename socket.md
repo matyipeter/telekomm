@@ -17,11 +17,15 @@ import time
 
 ### TCP Server
 ```python
-# SERVER_ADDR = ("localhost", 10000)
+
+host = sys.argv[0]
+port = sys.argv[1]
+address = (host, port)
+
 def tcp_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind(("localhost", 10000))
+        server.bind(address)
         server.listen(5)
         print("TCP Server Waiting...")
         
@@ -114,6 +118,24 @@ def recv_struct(sock):
         print(f"User: {clean_txt}, Score: {score}")
     except:
         print("Struct Error")
+
+def recvall(sock, n):
+    data = b''
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet: return None
+        data += packet
+    return data
+
+# ... inside your loop ...
+
+# 1. We know the struct is exactly PACKET_SIZE (15 bytes)
+raw_data = recvall(sock, packer.size)
+
+if raw_data:
+    # 2. We can unpack directly because we ensured the size is perfect
+    decoded = packer.unpack(raw_data)
+
 ```
 
 ---
@@ -122,11 +144,10 @@ def recv_struct(sock):
 *Handle multiple clients at once.*
 
 ```python
-def select_server():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+with socket.socket() as server:
     server.setblocking(False) # CRITICAL
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(("localhost", 10000))
+    server.bind(address)
     server.listen(5)
     
     inputs = [server] # Watch list
@@ -134,32 +155,30 @@ def select_server():
     while inputs:
         try:
             # 1. Wait for events (Read, Write, Exception, Timeout)
-            readable, _, exceptional = select.select(inputs, [], inputs, 1)
+            r, w, e = select.select(inputs, [], [], 1)
             
-            for sock in readable:
+            for sock in r:
                 if sock is server:
                     # NEW CONNECTION
                     c, addr = server.accept()
                     c.setblocking(False)
                     inputs.append(c)
                 else:
-                    # EXISTING CLIENT DATA
-                    data = sock.recv(1024)
+                    data = sock.recv(packer.size)
                     if data:
-                        # Logic here (e.g., Struct unpack)
-                        sock.sendall(data)
+                        data = packer.unpack(data)
+
+                        # DO something with data
                     else:
                         # DISCONNECT
                         inputs.remove(sock)
                         sock.close()
-                        
-            # Handle Errors
-            for sock in exceptional:
+
+        except KeyboardInterrupt:
+            for sock in inputs:
                 inputs.remove(sock)
                 sock.close()
-                
-        except KeyboardInterrupt:
-            break
+            inputs = []
 ```
 
 ---
